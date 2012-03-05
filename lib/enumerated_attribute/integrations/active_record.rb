@@ -98,10 +98,15 @@ module EnumeratedAttribute
 						class << self
 							unless method_defined?(:new_without_enumerated_attribute)
 								alias_method :new_without_enumerated_attribute, :new
-								def new(*args, &block)
-									result = new_without_enumerated_attribute(*args, &block)
+								def new(*args)
+									result = new_without_enumerated_attribute(*args)
 									params = (!args.empty? && args.first.instance_of?(Hash)) ? args.first : {}
-									params.each { |k, v| result.write_enumerated_attribute(k, v) }
+									params.each do |k, v|
+										k = k.to_s
+										if self.has_enumerated_attribute?(k)
+											result.write_enumerated_attribute(k, v)
+										end
+									end
 									result.initialize_enumerated_attributes(true)
 									yield result if block_given?
 									result
